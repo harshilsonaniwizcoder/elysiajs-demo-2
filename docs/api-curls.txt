@@ -1,0 +1,93 @@
+# API curl commands for bun-supabase-elysia-2
+# Usage: set BASE and TOKEN, then run the commands one by one.
+# PowerShell/Bash compatible (uses double quotes for headers, single quotes for JSON bodies).
+
+# Variables
+BASE="http://localhost:3000"
+TOKEN="PASTE_JWT_TOKEN_HERE"
+
+# --- Public Health Endpoints ---
+# Health check
+curl -X GET "$BASE/health"
+
+# Detailed health (note: code does not enforce auth here)
+curl -X GET "$BASE/health/detailed"
+
+# --- Auth Endpoints (/api/v1/auth) ---
+# Register
+curl -X POST "$BASE/api/v1/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user1@example.com","password":"Password123!","name":"User One"}'
+
+# Login (returns JWT token)
+curl -X POST "$BASE/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user1@example.com","password":"Password123!"}'
+
+# --- User Endpoints (/api/v1/users) ---
+# List users (requires Authorization)
+curl -X GET "$BASE/api/v1/users?page=1&limit=10" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Get user by id
+curl -X GET "$BASE/api/v1/users/USER_ID" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Create user
+curl -X POST "$BASE/api/v1/users" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"new@example.com","name":"New User","role":"user"}'
+
+# Update user
+curl -X PUT "$BASE/api/v1/users/USER_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated Name"}'
+
+# Delete user
+curl -X DELETE "$BASE/api/v1/users/USER_ID" \
+  -H "Authorization: Bearer $TOKEN"
+
+# --- Queue Endpoints (/api/v1/queue) ---
+# Add job to queue (queueName: email-queue | notification-queue | data-processing-queue)
+curl -X POST "$BASE/api/v1/queue/job" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"queueName":"email-queue","type":"welcome-email","payload":{"userId":"USER_ID","email":"user@example.com"}}'
+
+# --- Metrics Endpoint (/api/v1/metrics) ---
+# Get application metrics
+curl -X GET "$BASE/api/v1/metrics/"
+
+# --- Monitoring Endpoints (/api/v1/monitoring) ---
+# System health (admin only)
+curl -X GET "$BASE/api/v1/monitoring/health" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Active alerts
+curl -X GET "$BASE/api/v1/monitoring/alerts" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Resolve alert by id
+curl -X POST "$BASE/api/v1/monitoring/alerts/ALERT_ID/resolve" \
+  -H "Authorization: Bearer $TOKEN"
+
+# --- Admin Endpoints (/api/v1/admin) ---
+# Create backup (admin only)
+curl -X POST "$BASE/api/v1/admin/backup" \
+  -H "Authorization: Bearer $TOKEN"
+
+# List backups (admin only)
+curl -X GET "$BASE/api/v1/admin/backups" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Clear cache (admin only). Optional: pattern, e.g., users:*
+curl -X POST "$BASE/api/v1/admin/cache/clear" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"pattern":"users:*"}'
+
+# --- Bull Board (Queue Dashboard UI) ---
+# Open in browser normally; curl to verify it responds
+curl -X GET "$BASE/admin/queues"

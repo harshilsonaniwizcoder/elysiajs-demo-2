@@ -1,0 +1,89 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 50
+      name: "Ramp up load"
+    - duration: 300
+      arrivalRate: 100
+      name: "Sustained load"
+  environments:
+    staging:
+      target: 'https://staging.yourapi.com'
+    production:
+      target: 'https://api.yourapi.com'
+
+scenarios:
+  - name: "Health Check"
+    weight: 10
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+
+  - name: "Authentication Flow"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          capture:
+            - json: "$.data.token"
+              as: "authToken"
+      - get:
+          url: "/api/v1/users"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  - name: "User CRUD Operations"
+    weight: 60
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "admin@example.com"
+            password: "admin123"
+          capture:
+            - json: "$.data.token"
+              as: "adminToken"
+      - post:
+          url: "/api/v1/users"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          json:
+            email: "user{{ $randomNumber() }}@example.com"
+            name: "Test User {{ $randomNumber() }}"
+            role: "user"
+          capture:
+            - json: "$.data.id"
+              as: "userId"
+      - get:
+          url: "/api/v1/users/{{ userId }}"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          expect:
+            - statusCode: 200
+      - put:
+          url: "/api/v1/users/{{ userId }}"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          json:
+            name: "Updated User {{ $randomNumber() }}"
+
+# Performance benchmarks
+performance:
+  response_time:
+    p50: "<100ms"
+    p95: "<200ms" 
+    p99: "<500ms"
+  throughput: ">1000 req/sec"
+  error_rate: "<1%"
+  availability: ">99.9%"
