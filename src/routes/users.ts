@@ -6,50 +6,50 @@ import { createUserSchema, updateUserSchema, getUsersSchema } from '@/schemas/us
 import { changeLanguage } from '@/localization';
 
 export const userRoutes = new Elysia({ prefix: '/users' })
-  .get('/', async ({ query, headers, request }) => {
+  .get('/', async ({ query, headers, request, requestId }) => {
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
     await authMiddleware(headers.authorization);
     if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
-    
+
     const validatedQuery = getUsersSchema.parse(query);
-    return await userController.getUsers(validatedQuery);
+    return await userController.getUsers(validatedQuery, requestId);
   })
-  
-  .get('/:id', async ({ params, headers, request }) => {
+
+  .get('/:id', async ({ params, headers, request, requestId }) => {
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
     await authMiddleware(headers.authorization);
     if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
-    
-    return await userController.getUserById(params.id);
+
+    return await userController.getUserById(params.id, requestId);
   })
-  
-  .post('/', async ({ body, headers, request }) => {
+
+  .post('/', async ({ body, headers, request, requestId }) => {
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
     await authMiddleware(headers.authorization);
     if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
-    
+
     const validatedData = createUserSchema.parse(body);
-    return await userController.createUser(validatedData);
+    return await userController.createUser(validatedData, requestId);
   })
-  
-  .put('/:id', async ({ params, body, headers, request }) => {
+
+  .put('/:id', async ({ params, body, headers, request, requestId }) => {
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
     await authMiddleware(headers.authorization);
     if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
-    
+
     const validatedData = updateUserSchema.parse(body);
-    return await userController.updateUser(params.id, validatedData);
+    return await userController.updateUser(params.id, validatedData, requestId);
   })
-  
-  .delete('/:id', async ({ params, headers, request }) => {
+
+  .delete('/:id', async ({ params, headers, request, requestId }) => {
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
     await authMiddleware(headers.authorization);
     if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
-    
-    return await userController.deleteUser(params.id);
+
+    return await userController.deleteUser(params.id, requestId);
   });
