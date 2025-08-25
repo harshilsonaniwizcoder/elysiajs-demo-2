@@ -28,10 +28,14 @@ const genericErrorResponse = () =>
     HTTP_STATUS.INTERNAL_SERVER_ERROR
   );
 
-export const errorHandler = (error: Error) => {
-  logger.error('Error occurred:', { message: error.message, stack: error.stack });
+export const errorHandler = (error: unknown) => {
+  // If a plugin/route returned a Response directly, pass it through
+  if (error instanceof Response) return error;
 
-  if (error instanceof AppError) return appErrorResponse(error);
-  if (error instanceof ZodError) return zodErrorResponse(error);
+  const err = error as Error;
+  logger.error('Error occurred:', { message: err?.message, stack: err?.stack });
+
+  if (err instanceof AppError) return appErrorResponse(err);
+  if (err instanceof ZodError) return zodErrorResponse(err);
   return genericErrorResponse();
 };

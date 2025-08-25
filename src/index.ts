@@ -21,9 +21,7 @@ import { adminRoutes } from '@/routes/admin';
 import { ResponseBuilder } from '@/utils/response';
 
 // Setup Bull Board (queue dashboard) using Elysia adapter
-const serverAdapter = new ElysiaAdapter({
-  basePath: '/admin/queues',
-});
+const serverAdapter = new ElysiaAdapter('/admin/queues');
 
 createBullBoard({
   queues: queueManager.getQueues().map(q => new BullMQAdapter(q)),
