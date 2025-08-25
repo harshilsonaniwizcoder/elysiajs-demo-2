@@ -99,6 +99,18 @@ class QueueManager {
     logger.info(`Data processed for job ${job.id}`);
   }
 
+  public async addJob(queueName: string, data: QueueJobData): Promise<Job<QueueJobData>> {
+    const queue = this.queues.get(queueName);
+    if (!queue) {
+      throw new Error(`Queue not found: ${queueName}`);
+    }
+
+    // Use the job type as the BullMQ job name; full payload is passed as job data
+    const job = await queue.add(data.type, data);
+    logger.info(`Added job ${job.id} to queue ${queueName} with type ${data.type}`);
+    return job as Job<QueueJobData>;
+  }
+
   public getQueues(): Queue[] {
     return Array.from(this.queues.values());
   }
