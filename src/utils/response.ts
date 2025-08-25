@@ -1,5 +1,6 @@
 import type { ApiResponse, PaginatedResponse } from '@/types/global';
 import { randomUUID } from 'crypto';
+import { HTTP_STATUS } from '@/utils/constants';
 
 export class ResponseBuilder {
   static success<T>(
@@ -53,3 +54,12 @@ export class ResponseBuilder {
     };
   }
 }
+
+export const jsonResponse = (
+  payload: unknown,
+  status: number = HTTP_STATUS.OK
+) =>
+  new Response(JSON.stringify(payload), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });

@@ -20,9 +20,10 @@ class BackupService {
       const backupId = `backup-${Date.now()}`;
       logger.info(`Backup ${backupId} created successfully.`);
       return backupId;
-    } catch (error) {
-      logger.error('Backup failed:', error);
-      throw new Error(`Backup failed: ${error.message}`);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.error('Backup failed:', err);
+      throw new Error(`Backup failed: ${err.message}`);
     }
   }
 

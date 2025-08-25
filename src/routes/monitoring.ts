@@ -3,7 +3,7 @@ import { monitoringService } from '@/services/monitoring';
 import { authMiddleware } from '@/middleware/auth';
 import { ResponseBuilder } from '@/utils/response';
 
-export const monitoringRoutes = new Elysia({ prefix: '/monitoring' })
+export const monitoringRoutes: Elysia = (new Elysia({ prefix: '/monitoring' })
   .get('/health', async ({ headers }) => {
     const auth = await authMiddleware(headers.authorization);
     
@@ -27,4 +27,4 @@ export const monitoringRoutes = new Elysia({ prefix: '/monitoring' })
     
     await monitoringService.resolveAlert(params.id);
     return ResponseBuilder.success('Alert resolved');
-  });
+  })) as unknown as Elysia;

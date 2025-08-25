@@ -23,14 +23,18 @@ import { ResponseBuilder } from '@/utils/response';
 // Setup Bull Board (queue dashboard) using Elysia adapter
 const serverAdapter = new ElysiaAdapter('/admin/queues');
 
+const bullQueues = queueManager.getQueues().map((q) => new BullMQAdapter(q));
 createBullBoard({
-  queues: queueManager.getQueues().map(q => new BullMQAdapter(q)),
-  serverAdapter,
+  // Double cast to avoid type mismatch across versions
+  // eslint-disable-next-line
+  queues: bullQueues as unknown as never[],
+  // eslint-disable-next-line
+  serverAdapter: serverAdapter as unknown as never,
 });
 
 const bullBoardPlugin = serverAdapter.registerPlugin();
 
-const app = new Elysia()
+const app = (new Elysia()
   // Security middleware
   .use(helmet(config.security.helmetOptions))
   .use(cors({
@@ -89,7 +93,7 @@ const app = new Elysia()
   .listen({
     port: config.port,
     hostname: '0.0.0.0',
-  });
+  })) as unknown as Elysia;
 
 // Start scheduled tasks
 scheduledTasksWorker.start();

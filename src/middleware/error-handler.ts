@@ -1,21 +1,17 @@
 import { AppError } from '@/utils/errors';
-import { ResponseBuilder } from '@/utils/response';
+import { ResponseBuilder, jsonResponse } from '@/utils/response';
 import { logger } from '@/utils/logger';
 import { HTTP_STATUS } from '@/utils/constants';
 import { t } from '@/localization';
 import { ZodError } from 'zod';
-import type { Context } from 'elysia';
+import { randomUUID } from 'crypto';
 
-type ErrorContext = Context & {
-  error: Error;
-  requestId: string;
+type ErrorContext = {
+  // Keep only what we actually need to avoid strict generic mismatches
+  error: unknown;
+  requestId?: string;
+  request: Request;
 };
-
-const jsonResponse = (payload: unknown, status: number) =>
-  new Response(JSON.stringify(payload), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
 
 const appErrorResponse = (err: AppError, requestId: string) =>
   jsonResponse(
@@ -37,17 +33,20 @@ const genericErrorResponse = (requestId: string) =>
     HTTP_STATUS.INTERNAL_SERVER_ERROR
   );
 
-export const errorHandler = ({ error, requestId }: ErrorContext) => {
+export const errorHandler = ({ error, requestId, request }: ErrorContext) => {
   // If a plugin/route returned a Response directly, pass it through
   if (error instanceof Response) return error;
 
+  const anyErr = error as any;
   logger.error('Error occurred:', {
-    message: error?.message,
-    stack: error?.stack,
+    message: anyErr?.message,
+    stack: anyErr?.stack,
     requestId,
   });
 
-  if (error instanceof AppError) return appErrorResponse(error, requestId);
-  if (error instanceof ZodError) return zodErrorResponse(error, requestId);
-  return genericErrorResponse(requestId);
+  const safeRequestId = requestId ?? request.headers.get('x-request-id') ?? randomUUID();
+
+  if (error instanceof AppError) return appErrorResponse(error, safeRequestId);
+  if (error instanceof ZodError) return zodErrorResponse(error, safeRequestId);
+  return genericErrorResponse(safeRequestId);
 };

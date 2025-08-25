@@ -1,12 +1,15 @@
 import { Elysia } from 'elysia';
 import jwt from 'jsonwebtoken';
+import type { SignOptions, Secret } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
-import { config } from '@/config/index';
+import { config } from '@/config';
 import { dbService } from '@/services/database';
-import { ResponseBuilder } from '@/utils/response';
+import { ResponseBuilder, jsonResponse } from '@/utils/response';
 import { AuthenticationError } from '@/utils/errors';
 import { rateLimitMiddleware } from '@/middleware/rate-limiter';
+import { HTTP_STATUS } from '@/utils/constants';
+import { randomUUID } from 'crypto';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email format').max(255),
@@ -20,7 +23,7 @@ const registerSchema = z.object({
 });
 
 const createToken = (userId: string): string =>
-  jwt.sign({ userId }, config.jwt.secret, { expiresIn: config.jwt.expiresIn });
+  jwt.sign({ userId }, config.jwt.secret as Secret, { expiresIn: config.jwt.expiresIn } as SignOptions);
 
 const registerUser = async (
   { email, password, name }: { email: string; password: string; name: string }
@@ -48,8 +51,8 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
     }
     
     const token = createToken(user.id);
-    
-    return ResponseBuilder.success('Login successful', {
+    const requestId = request.headers.get('x-request-id') ?? randomUUID();
+    const payload = ResponseBuilder.success('Login successful', {
       token,
       user: {
         id: user.id,
@@ -57,7 +60,8 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
         name: user.name,
         role: user.role,
       },
-    });
+    }, requestId);
+    return jsonResponse(payload, HTTP_STATUS.OK);
   })
   
   .post('/register', async ({ body, request }) => {
@@ -67,8 +71,8 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
     const { email, password, name } = registerSchema.parse(body);
     const user = await registerUser({ email, password, name });
     const token = createToken(user.id);
-    
-    return ResponseBuilder.success('Registration successful', {
+    const requestId = request.headers.get('x-request-id') ?? randomUUID();
+    const payload = ResponseBuilder.success('Registration successful', {
       token,
       user: {
         id: user.id,
@@ -76,5 +80,6 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
         name: user.name,
         role: user.role,
       },
-    });
+    }, requestId);
+    return jsonResponse(payload, HTTP_STATUS.OK);
   });
