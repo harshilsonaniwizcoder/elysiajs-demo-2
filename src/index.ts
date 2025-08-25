@@ -82,10 +82,10 @@ const app = new Elysia()
   
   // Bull Board for queue management
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // .use(bullBoardPlugin as any)
+  .use(bullBoardPlugin as unknown as Elysia)
   
   // Global error handler
-  // .onError(({ error }) => errorHandler(error))
+  .onError(({ error }) => errorHandler(error))
   
   // Start server
   .listen({
