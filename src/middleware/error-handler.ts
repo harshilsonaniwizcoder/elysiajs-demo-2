@@ -37,10 +37,11 @@ export const errorHandler = ({ error, requestId, request }: ErrorContext) => {
   // If a plugin/route returned a Response directly, pass it through
   if (error instanceof Response) return error;
 
-  const anyErr = error as any;
+  const message = error instanceof Error ? error.message : String(error);
+  const stack = error instanceof Error ? error.stack : undefined;
   logger.error('Error occurred:', {
-    message: anyErr?.message,
-    stack: anyErr?.stack,
+    message,
+    stack,
     requestId,
   });
 

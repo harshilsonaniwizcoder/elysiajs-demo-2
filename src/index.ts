@@ -26,9 +26,7 @@ const serverAdapter = new ElysiaAdapter('/admin/queues');
 const bullQueues = queueManager.getQueues().map((q) => new BullMQAdapter(q));
 createBullBoard({
   // Double cast to avoid type mismatch across versions
-  // eslint-disable-next-line
   queues: bullQueues as unknown as never[],
-  // eslint-disable-next-line
   serverAdapter: serverAdapter as unknown as never,
 });
 
@@ -83,7 +81,6 @@ const app = (new Elysia()
   )
   
   // Bull Board for queue management
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .use(bullBoardPlugin as unknown as Elysia)
   
   // Global error handler

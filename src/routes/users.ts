@@ -9,11 +9,15 @@ import { HTTP_STATUS } from '@/utils/constants';
 import { randomUUID } from 'crypto';
 
 export const userRoutes = new Elysia({ prefix: '/users' })
-  .get('/', async ({ query, headers, request }) => {
+  .get('/', async ({ query, request }) => {
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
-    await authMiddleware(headers.authorization);
-    if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
+    const authorization = request.headers.get('authorization');
+    await authMiddleware(authorization ?? undefined);
+    {
+      const lng = request.headers.get('lng');
+      if (lng) await changeLanguage(lng);
+    }
 
     const requestId = request.headers.get('x-request-id') ?? randomUUID();
     const validatedQuery = getUsersSchema.parse(query);
@@ -25,7 +29,10 @@ export const userRoutes = new Elysia({ prefix: '/users' })
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
     await authMiddleware(headers.authorization);
-    if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
+    {
+      const lng = request.headers.get('lng');
+      if (lng) await changeLanguage(lng);
+    }
 
     const requestId = request.headers.get('x-request-id') ?? randomUUID();
     const payload = await userController.getUserById(params.id, requestId);
@@ -36,7 +43,10 @@ export const userRoutes = new Elysia({ prefix: '/users' })
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
     await authMiddleware(headers.authorization);
-    if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
+    {
+      const lng = request.headers.get('lng');
+      if (lng) await changeLanguage(lng);
+    }
 
     const requestId = request.headers.get('x-request-id') ?? randomUUID();
     const validatedData = createUserSchema.parse(body);
@@ -48,7 +58,10 @@ export const userRoutes = new Elysia({ prefix: '/users' })
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
     await authMiddleware(headers.authorization);
-    if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
+    {
+      const lng = request.headers.get('lng');
+      if (lng) await changeLanguage(lng);
+    }
 
     const requestId = request.headers.get('x-request-id') ?? randomUUID();
     const validatedData = updateUserSchema.parse(body);
@@ -60,7 +73,10 @@ export const userRoutes = new Elysia({ prefix: '/users' })
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     await rateLimitMiddleware(clientIp);
     await authMiddleware(headers.authorization);
-    if ((headers as any)?.lng) await changeLanguage((headers as any).lng);
+    {
+      const lng = request.headers.get('lng');
+      if (lng) await changeLanguage(lng);
+    }
 
     const requestId = request.headers.get('x-request-id') ?? randomUUID();
     const payload = await userController.deleteUser(params.id, requestId);

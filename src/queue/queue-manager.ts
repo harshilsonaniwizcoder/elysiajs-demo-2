@@ -1,12 +1,10 @@
 import { Queue, Worker, Job } from 'bullmq';
 import { createBullBoard } from '@bull-board/api';
-import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import type { ElysiaAdapter } from '@bull-board/elysia';
 import { redisService } from '@/services/redis';
 import { logger } from '@/utils/logger';
 import { QUEUE_NAMES } from '@/utils/constants';
 import type { QueueJobData } from '@/types/global';
-import { IServerAdapter } from '@bull-board/api/dist/typings/app';
 
 class QueueManager {
   private queues: Map<string, Queue> = new Map();

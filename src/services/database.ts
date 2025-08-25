@@ -52,26 +52,25 @@ class DatabaseService {
       .single();
 
     if (error) {
-      // Handle unique constraint violation (e.g., duplicate email)
-      // Postgres unique_violation error code is '23505'.
-      // Fallback: check common message substring if code is unavailable.
-      const isUniqueViolation =
-        (error as any)?.code === '23505' ||
-        /duplicate key value/i.test(error.message || '') ||
-        /unique constraint/i.test(error.message || '');
-
-      if (isUniqueViolation) {
+      if (this.isUniqueViolation(error)) {
         throw new AppError(
           t('user.email_exists'),
           HTTP_STATUS.CONFLICT,
           ERROR_CODES.DUPLICATE_RESOURCE
         );
       }
-
       throw new Error(`Failed to create user: ${error.message}`);
     }
 
     return data;
+  }
+
+  private isUniqueViolation(error: { code?: string; message?: string }): boolean {
+    return (
+      error.code === '23505' ||
+      /duplicate key value/i.test(error.message || '') ||
+      /unique constraint/i.test(error.message || '')
+    );
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
