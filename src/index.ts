@@ -83,7 +83,7 @@ const app = new Elysia()
   .use(bullBoardPlugin as unknown as Elysia)
   
   // Global error handler
-  .onError(({ error }) => errorHandler(error))
+  .onError((context) => errorHandler(context))
   
   // Start server
   .listen({

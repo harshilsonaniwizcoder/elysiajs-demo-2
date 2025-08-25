@@ -4,6 +4,12 @@ import { logger } from '@/utils/logger';
 import { HTTP_STATUS } from '@/utils/constants';
 import { t } from '@/localization';
 import { ZodError } from 'zod';
+import type { Context } from 'elysia';
+
+type ErrorContext = Context & {
+  error: Error;
+  requestId: string;
+};
 
 const jsonResponse = (payload: unknown, status: number) =>
   new Response(JSON.stringify(payload), {
@@ -11,31 +17,37 @@ const jsonResponse = (payload: unknown, status: number) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
-const appErrorResponse = (err: AppError) =>
-  jsonResponse(ResponseBuilder.error(err.message, err.code), err.statusCode);
+const appErrorResponse = (err: AppError, requestId: string) =>
+  jsonResponse(
+    ResponseBuilder.error(err.message, err.code, requestId),
+    err.statusCode
+  );
 
-const zodErrorResponse = (err: ZodError) => {
+const zodErrorResponse = (err: ZodError, requestId: string) => {
   const message = err.errors.map(e => e.message).join(', ');
   return jsonResponse(
-    ResponseBuilder.error(message, 'VALIDATION_ERROR'),
+    ResponseBuilder.error(message, 'VALIDATION_ERROR', requestId),
     HTTP_STATUS.BAD_REQUEST
   );
 };
 
-const genericErrorResponse = () =>
+const genericErrorResponse = (requestId: string) =>
   jsonResponse(
-    ResponseBuilder.error(t('server.error'), 'INTERNAL_ERROR'),
+    ResponseBuilder.error(t('server.error'), 'INTERNAL_ERROR', requestId),
     HTTP_STATUS.INTERNAL_SERVER_ERROR
   );
 
-export const errorHandler = (error: unknown) => {
+export const errorHandler = ({ error, requestId }: ErrorContext) => {
   // If a plugin/route returned a Response directly, pass it through
   if (error instanceof Response) return error;
 
-  const err = error as Error;
-  logger.error('Error occurred:', { message: err?.message, stack: err?.stack });
+  logger.error('Error occurred:', {
+    message: error?.message,
+    stack: error?.stack,
+    requestId,
+  });
 
-  if (err instanceof AppError) return appErrorResponse(err);
-  if (err instanceof ZodError) return zodErrorResponse(err);
-  return genericErrorResponse();
+  if (error instanceof AppError) return appErrorResponse(error, requestId);
+  if (error instanceof ZodError) return zodErrorResponse(error, requestId);
+  return genericErrorResponse(requestId);
 };
