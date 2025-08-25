@@ -12,9 +12,8 @@ export class ResponseBuilder {
       success: true,
       message,
       data,
-      timestamp: new Date().toISOString(),
-      requestId,
-    };
+      timestamp: Date.now(),
+    } as unknown as ApiResponse<T>;
   }
 
   static error(
@@ -25,10 +24,9 @@ export class ResponseBuilder {
     return {
       success: false,
       message,
-      error,
-      timestamp: new Date().toISOString(),
-      requestId,
-    };
+      data: null,
+      timestamp: Date.now(),
+    } as unknown as ApiResponse;
   }
 
   static paginated<T>(
@@ -49,9 +47,8 @@ export class ResponseBuilder {
         ...pagination,
         totalPages: Math.ceil(pagination.total / pagination.limit),
       },
-      timestamp: new Date().toISOString(),
-      requestId,
-    };
+      timestamp: Date.now(),
+    } as unknown as PaginatedResponse<T>;
   }
 }
 
