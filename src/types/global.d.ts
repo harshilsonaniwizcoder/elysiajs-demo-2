@@ -23,7 +23,7 @@ export interface User {
   role: 'admin' | 'user';
   // Stored as hash; optional when not selected from DB
   password?: string;
-  createdAt: Date;
+  created_at: Date;
   updatedAt: Date;
 }
 

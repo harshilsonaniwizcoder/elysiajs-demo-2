@@ -41,7 +41,7 @@ class DatabaseService {
     return data;
   }
 
-  async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
+  async createUser(userData: Omit<User, 'id' | 'created_at' | 'updatedAt'>): Promise<User> {
     const { data, error } = await this.supabase
       .from('users')
       .insert(userData)
@@ -93,7 +93,7 @@ class DatabaseService {
         .from('users')
         .select('*')
         .range(from, to)
-        .order('createdAt', { ascending: false }),
+        .order('created_at', { ascending: false }),
       this.supabase
         .from('users')
         .select(`*`, { count: 'exact', head: true })
